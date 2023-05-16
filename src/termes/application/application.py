@@ -1,3 +1,4 @@
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -9,7 +10,7 @@ from .. import database
 
 @asynccontextmanager
 async def lifespan(application: FastAPI):
-    database.engine = create_async_engine("")
+    database.engine = create_async_engine(os.getenv("DATABASE_URL"))
     database.sessionmaker = async_sessionmaker(database.engine, expire_on_commit=False)
     application.include_router(handlers.router)
     yield
