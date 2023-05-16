@@ -3,6 +3,11 @@ from datetime import datetime
 from pydantic import BaseModel
 
 
+class UserCredentials(BaseModel):
+    email: str
+    password: str | None = None
+
+
 class UserProfile(BaseModel):
     first_name: str
     last_name: str | None = None

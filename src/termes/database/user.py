@@ -1,10 +1,9 @@
-from sqlalchemy import select, update, delete, func
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from .. import utils
+from .. import utils, schemas, models
 from ..errors import ItemNotFoundError
-from ..models import User, UserCredentials
 
 
 async def get_user(
@@ -14,14 +13,14 @@ async def get_user(
         include_profile: bool = False,
         include_credentials: bool = False,
         include_sessions: bool = False
-) -> User:
-    statement = select(User).where(User.id == user_id)
+) -> models.User:
+    statement = select(models.User).where(models.User.id == user_id)
     if include_profile:
-        statement.options(selectinload(User.profile))
+        statement.options(selectinload(models.User.profile))
     if include_credentials:
-        statement.options(selectinload(User.credentials))
+        statement.options(selectinload(models.User.credentials))
     if include_sessions:
-        statement.options(selectinload(User.sessions))
+        statement.options(selectinload(models.User.sessions))
 
     user = (await database_session.execute(statement)).scalar()
 
@@ -31,20 +30,21 @@ async def get_user(
     return user
 
 
-async def delete_user(database_session: AsyncSession, user_id: int, delete_from_database: bool = False):
-    if delete_from_database:
-        statement = delete(User).where(User.id == user_id)
-    else:
-        statement = update(User).where(User.id == user_id).values(deleted=True)
-
-    await database_session.execute(statement)
+def add_user(database_session: AsyncSession, user: models.User):
+    database_session.add(user)
 
 
-async def check_credentials(database_session: AsyncSession, email: str, password: str | None = None) -> bool:
-    statement = select(func.count()).select_from(UserCredentials).where(UserCredentials.email == email)
+def delete_user(database_session: AsyncSession, user_id: int):
+    database_session.delete(models.User(id=user_id))
 
-    if password is not None:
-        statement.where(UserCredentials.hashed_password == utils.sha256(password))
+
+async def check_credentials(database_session: AsyncSession, credentials: schemas.UserCredentials) -> bool:
+    statement = select(func.count()).select_from(models.UserCredentials).where(
+        models.UserCredentials.email == credentials.email
+    )
+
+    if credentials.password is not None:
+        statement.where(models.UserCredentials.hashed_password == utils.sha256(credentials.password))
 
     count = (await database_session.execute(statement)).scalar()
 
