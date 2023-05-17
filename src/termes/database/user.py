@@ -1,3 +1,6 @@
+import secrets
+from datetime import timedelta, datetime
+
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -39,13 +42,38 @@ def delete_user(database_session: AsyncSession, user_id: int):
 
 
 async def check_credentials(database_session: AsyncSession, credentials: schemas.UserCredentials) -> bool:
-    statement = select(func.count()).select_from(models.UserCredentials).where(
+    statement = select(func.count()).select_from(
+        models.UserCredentials
+    ).where(
         models.UserCredentials.email == credentials.email
+    ).where(
+        models.UserCredentials.hashed_password == utils.sha256(credentials.password)
     )
-
-    if credentials.password is not None:
-        statement.where(models.UserCredentials.hashed_password == utils.sha256(credentials.password))
 
     count = (await database_session.execute(statement)).scalar()
 
     return count > 0
+
+
+async def get_user_by_credentials(
+        database_session: AsyncSession,
+        credentials: schemas.UserCredentials
+) -> models.User | None:
+    statement = select(models.UserCredentials).where(models.UserCredentials.email == credentials.email).where(
+        models.UserCredentials.hashed_password == utils.sha256(credentials.password)
+    )
+
+    return (await database_session.execute(statement)).scalar().user
+
+
+def create_session(
+        database_session: AsyncSession, user_id: int, lifetime: timedelta
+) -> tuple[str, models.UserSession]:
+    token = secrets.token_hex(32)
+    session = models.UserSession(
+        user_id=user_id,
+        hashed_token=utils.sha256(token),
+        expires_on=datetime.now() + lifetime
+    )
+    database_session.add(session)
+    return token, session

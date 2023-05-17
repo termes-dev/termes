@@ -9,3 +9,8 @@ class UserResponse(BaseModel):
 
 class RegistrationResponse(BaseModel):
     user: User
+
+
+class AuthenticationResponse(BaseModel):
+    session: UserSession
+    token: str
