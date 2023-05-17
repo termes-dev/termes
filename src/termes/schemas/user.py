@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 class UserCredentials(BaseModel):
     email: str
-    password: str | None = None
+    password: str
 
     class Config:
         orm_mode = True

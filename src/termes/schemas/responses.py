@@ -1,6 +1,11 @@
 from pydantic import BaseModel
 
-from .user import User
+from termes.schemas.user import User, UserSession
+
+
+class ErrorResponse(BaseModel):
+    code: int
+    message: str
 
 
 class UserResponse(BaseModel):

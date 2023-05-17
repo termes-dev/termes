@@ -1,3 +1,3 @@
-from .database import engine
-from .database import sessionmaker
-from .user import get_user, delete_user, check_credentials, add_user, get_user_by_credentials, create_session
+from termes.database.database import engine, sessionmaker
+from termes.database.user import get_user, add_user, delete_user
+from termes.database.credentials import check_credentials, get_credentials
