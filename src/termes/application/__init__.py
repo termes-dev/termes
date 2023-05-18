@@ -1,1 +1,1 @@
-from .application import app
+from termes.application import settings
