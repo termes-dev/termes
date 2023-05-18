@@ -4,11 +4,13 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from termes.application.dependencies import get_database_session
-from termes.schemas import UserResponse, ErrorResponse
+from termes.schemas import UserResponse
 
-router = APIRouter()
+router = APIRouter(
+    tags=["User"]
+)
 
 
-@router.get("/{user_id}", response_model=UserResponse | ErrorResponse)
-async def get(database_session: Annotated[AsyncSession, Depends(get_database_session)], user_id: int):
+@router.get("/{user_id}", response_model=UserResponse)
+async def get_user(database_session: Annotated[AsyncSession, Depends(get_database_session)], user_id: int):
     pass

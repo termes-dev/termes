@@ -21,7 +21,7 @@ async def get_user(
     if include_sessions:
         options.append(selectinload(User.sessions))
 
-    user: User | None = await database_session.get(User, user_id, options=options)
+    user = await database_session.get(User, user_id, options=options)
 
     if user is None:
         raise ItemNotFoundError()
