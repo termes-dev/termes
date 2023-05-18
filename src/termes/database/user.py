@@ -1,9 +1,8 @@
-from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from .. import utils, schemas, models
-from ..errors import ItemNotFoundError
+from termes.errors import ItemNotFoundError
+from termes.models import User
 
 
 async def get_user(
@@ -13,16 +12,16 @@ async def get_user(
         include_profile: bool = False,
         include_credentials: bool = False,
         include_sessions: bool = False
-) -> models.User:
-    statement = select(models.User).where(models.User.id == user_id)
+) -> User:
+    options = []
     if include_profile:
-        statement.options(selectinload(models.User.profile))
+        options.append(selectinload(User.profile))
     if include_credentials:
-        statement.options(selectinload(models.User.credentials))
+        options.append(selectinload(User.credentials))
     if include_sessions:
-        statement.options(selectinload(models.User.sessions))
+        options.append(selectinload(User.sessions))
 
-    user = (await database_session.execute(statement)).scalar()
+    user = await database_session.get(User, user_id, options=options)
 
     if user is None:
         raise ItemNotFoundError()
@@ -30,22 +29,10 @@ async def get_user(
     return user
 
 
-def add_user(database_session: AsyncSession, user: models.User):
+async def add_user(database_session: AsyncSession, user: User):
     database_session.add(user)
+    await database_session.flush()
 
 
-def delete_user(database_session: AsyncSession, user_id: int):
-    database_session.delete(models.User(id=user_id))
-
-
-async def check_credentials(database_session: AsyncSession, credentials: schemas.UserCredentials) -> bool:
-    statement = select(func.count()).select_from(models.UserCredentials).where(
-        models.UserCredentials.email == credentials.email
-    )
-
-    if credentials.password is not None:
-        statement.where(models.UserCredentials.hashed_password == utils.sha256(credentials.password))
-
-    count = (await database_session.execute(statement)).scalar()
-
-    return count > 0
+async def delete_user(database_session: AsyncSession, user_id: int):
+    await database_session.delete(User(id=user_id))

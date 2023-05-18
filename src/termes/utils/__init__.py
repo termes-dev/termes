@@ -1,1 +1,1 @@
-from .string import sha256
+from termes.utils.string import sha256
