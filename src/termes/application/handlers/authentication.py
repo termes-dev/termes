@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from termes import database
 from termes.application.dependencies import get_database_session
 from termes.errors import ItemNotFoundError
-from termes.schemas import AuthenticationResponse, AuthenticationRequest
+from termes.schemas import AuthenticationResponse, AuthenticationRequest, UserSession
 
 router = APIRouter(
     responses={
@@ -30,10 +30,10 @@ async def authentication(
     except ItemNotFoundError:
         raise HTTPException(403, "Invalid credentials")
 
-    session, token = database.generate_session(database_session, credentials.user_id)
+    session, token = await database.generate_session(database_session, credentials.user_id)
     await database_session.commit()
 
     return AuthenticationResponse(
-        session=session,
+        session=UserSession.from_orm(session),
         token=token
     )
