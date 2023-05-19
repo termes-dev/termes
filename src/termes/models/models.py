@@ -26,7 +26,7 @@ class UserProfile(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), primary_key=True)
     first_name: Mapped[str] = mapped_column(String(32))
     last_name: Mapped[str | None] = mapped_column(String(32))
-    username: Mapped[str | None] = mapped_column(String(32))
+    username: Mapped[str | None] = mapped_column(String(32), unique=True)
     bio: Mapped[str | None] = mapped_column(String(256))
 
     user: Mapped[User] = relationship(back_populates="profile", lazy="joined")
@@ -36,7 +36,7 @@ class UserCredentials(Base):
     __tablename__ = "user_credentials"
 
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), primary_key=True)
-    email: Mapped[str] = mapped_column(String(64))
+    email: Mapped[str] = mapped_column(String(64), unique=True)
     hashed_password: Mapped[str] = mapped_column(String(64))
 
     user: Mapped[User] = relationship(back_populates="credentials", lazy="joined")
