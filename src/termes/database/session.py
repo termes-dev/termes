@@ -31,10 +31,10 @@ async def generate_session(database_session: AsyncSession, user_id: int) -> tupl
     return session, token
 
 
-async def find_session(database_session: AsyncSession, token: str) -> UserSession:
+async def find_session_by_token(database_session: AsyncSession, token: str) -> UserSession:
     stmt = select(UserSession).where(UserSession.hashed_token == utils.sha256(token, salt=settings.TOKEN_HASH_SALT))
 
-    session = await database_session.execute(stmt)
+    session = (await database_session.execute(stmt)).scalar()
 
     if session is None:
         raise ItemNotFoundError()
