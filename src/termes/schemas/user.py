@@ -17,6 +17,9 @@ class UserSession(BaseModel):
     created_at: datetime
     expires_on: datetime
 
+    class Config:
+        orm_mode = True
+
 
 class UserProfile(BaseModel):
     first_name: str
