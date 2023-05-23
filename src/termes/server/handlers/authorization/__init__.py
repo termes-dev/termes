@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from termes.handlers.authorization import authentication, registration, session
+from termes.server.handlers.authorization import authentication, registration, session
 
 router = APIRouter(tags=["Authorization"])
 router.include_router(authentication.router)
